@@ -22,9 +22,8 @@ def fetch_stock_data(ticker, start_date, end_date):
     return df
 
 def save_data(df, ticker):
-    """Save DataFrame to CSV in the data folderr."""
-    
-    path = f"C:/Users/rskis/Desktop/{ticker}.csv"
+    os.makedirs("data/raw", exist_ok=True)
+    path = f"data/raw/{ticker}.csv"
     df.to_csv(path)
     print(f"Saved to {path}")
 
