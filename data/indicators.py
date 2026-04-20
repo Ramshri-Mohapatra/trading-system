@@ -49,6 +49,7 @@ def calculate_rsi(dataFrame, columnName, ticker, period=14):
     avg_gain = gains.ewm(span=period, adjust=False).mean()
     avg_loss = losses.ewm(span=period, adjust=False).mean()
     
+    
     # Step 4: calculate RS and RSI
     rs = avg_gain/avg_loss
     rsi = 100 - (100 / (1 + rs))
@@ -68,7 +69,7 @@ if __name__ == "__main__":
 
 
 
-    print(rsi_14.tail())
+    print(rsi_14.head())
 
     fig, (ax1,ax2) = plt.subplots(2,1, figsize = (12,8), sharex = True)
 
