@@ -8,7 +8,8 @@ def calculate_sma(dataFrame, column_name, ticker, period):
     dataFrame[(f'SMA_{period}', ticker)] = dataFrame[(column_name,ticker)].rolling(period).mean()
     return dataFrame
 
-def generate_signals(dataFrame):
+def generate_ma_signals(dataFrame):
+    print ("SMA_CROSS_STRATEGY")
     dataFrame.columns = dataFrame.columns.droplevel(1)
     dataFrame['signal'] = np.where(dataFrame['SMA_20'] > dataFrame['SMA_50'], 1, -1)
     signal_diff = dataFrame['signal'].diff()
