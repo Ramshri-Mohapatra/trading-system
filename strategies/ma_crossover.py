@@ -51,8 +51,7 @@ if __name__ == "__main__":
 
     plt.legend()
 
-    plt.tight_layout()
-
+   
     # create folder if it doesn't exist
     os.makedirs("./strategies/charts", exist_ok=True)
 
