@@ -3,7 +3,7 @@ import os
 import sys
 import numpy as np
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from strategies.ma_crossover import calculate_sma, generate_ma_signals
+from strategies.ma_crossover import calculate_sma, generate_sma_signals
 from strategies.rsi_strategy import generate_rsi_signals
 from data.indicators import calculate_rsi
 import matplotlib.pyplot as plt
@@ -47,13 +47,13 @@ def engine(dataFrame, starting_cash,TICKER):
     return portfolio_values
 
 if __name__ == "__main__":
-    TICKER = "MSFT"
+    TICKER = "TSLA"
     df_sma= pd.read_csv(f"data/raw/{TICKER}.csv", header=[0,1], index_col=0, parse_dates=True)
     df_rsi= pd.read_csv(f"data/raw/{TICKER}.csv", header=[0,1], index_col=0, parse_dates=True)
     
     calculate_sma(df_sma, 'Close', TICKER, 20)
     calculate_sma(df_sma, 'Close', TICKER, 50)
-    generate_ma_signals(df_sma)
+    generate_sma_signals(df_sma)
     print(f"Starting cash: £10,000 for {TICKER}")
     portfolio_values = engine(df_sma, 10000,TICKER)
     final_value = portfolio_values[-1]
