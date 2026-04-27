@@ -118,5 +118,6 @@ for i, (name, (df_s, pv)) in enumerate(strategy_data.items()):
 
 fig2.add_trace(go.Scatter(x=first_df.index, y=bh_values, name='Buy & Hold', line=dict(color='orange')))
 fig2.update_layout(title="Portfolio Value vs Buy & Hold", xaxis_title="Date", yaxis_title="Value (£)")
+st.caption("Flat periods in the strategy line indicate the portfolio is holding cash — the strategy has sold and is waiting for the next buy signal.")
 st.plotly_chart(fig2, use_container_width=True)
 
