@@ -25,6 +25,7 @@ if strategy == "MA Crossover":
     calculate_sma(df_strategy, 'Close',ticker, 50)
     generate_sma_signals(df_strategy)
     portfolio_values = engine(df_strategy, starting_cash, ticker)
+    strategy_data = {"MA Crossover":(df_strategy, portfolio_values)}
     
 
 elif strategy == "RSI":
@@ -32,60 +33,81 @@ elif strategy == "RSI":
     df_strategy[('RSI_14', ticker)] = calculate_rsi(df_strategy, 'Close', ticker, 14)
     generate_rsi_signals(df_strategy)
     portfolio_values = engine(df_strategy, starting_cash, ticker)
+    strategy_data = {"RSI":(df_strategy, portfolio_values)}
+
+
+elif strategy == "Both":
+    df_sma = df.copy()
+    df_rsi = df.copy()
+    calculate_sma(df_sma, 'Close', ticker, 20)
+    calculate_sma(df_sma, 'Close', ticker, 50)
+    generate_sma_signals(df_sma)
+
+    df_rsi[('RSI_14', ticker)] = calculate_rsi(df_rsi, 'Close', ticker, 14)
+    generate_rsi_signals(df_rsi)
+
+    pv_sma = engine(df_sma, starting_cash, ticker)
+    pv_rsi = engine(df_rsi, starting_cash, ticker)
+
+    strategy_data = {"MA Crossover": (df_sma, pv_sma), "RSI": (df_rsi, pv_rsi)}
+
+    
+
 
 
 
 #show final values
-final_value = portfolio_values[-1]
-total_return = ((final_value - starting_cash)/ starting_cash) *100
+first_df = list(strategy_data.values())[0][0]
+bh_shares = int(starting_cash/ first_df['Open'].iloc[0])
+bh_values = pd.Series(bh_shares*first_df['Close'], index = first_df.index)
+bh_returns = ((bh_values.iloc[-1]-starting_cash)/starting_cash)*100
+bh_ps = pd.Series(list(bh_values), index=first_df.index)
+bh_dr = bh_ps.pct_change().dropna()
+bh_sharpe = (bh_dr.mean() / bh_dr.std()) * np.sqrt(252)
+bh_mdd = ((bh_ps - bh_ps.cummax()) / bh_ps.cummax()).min()
+#METRICS
+cols = st.columns(len(strategy_data) + 1)
+for i, (name, (df_s, pv)) in enumerate(strategy_data.items()):
+    ret = ((pv[-1] - starting_cash)/starting_cash)*100
+    ps = pd.Series(pv, index=df_s.index)
+    dr = ps.pct_change().dropna()
+    sh = (dr.mean() / dr.std()) * np.sqrt(252)
+    mdd = ((ps - ps.cummax()) / ps.cummax()).min()
+    cols[i].subheader(name)
+    cols[i].metric("Final Value", f"£{pv[-1]:.2f}")
+    cols[i].metric("Total Return", f"{ret:.2f}%")
+    cols[i].metric("Sharpe", f"{sh:.2f}")
+    cols[i].metric("Max Drawdown", f"{mdd:.2%}")
 
-portfolio_series = pd.Series(portfolio_values, index = df_strategy.index)
-daily_returns = portfolio_series.pct_change().dropna()
-sharpe = (daily_returns.mean()/ daily_returns.std()) * np.sqrt(252)
-rolling_max = portfolio_series.cummax()
-drawdown = (portfolio_series - rolling_max)/rolling_max
-max_drawdown = drawdown.min()
+cols[-1].subheader("Buy & Hold")
+cols[-1].metric("Final Value", f"£{bh_values.iloc[-1]:.2f}")
+cols[-1].metric("Total Return", f"{bh_returns:.2f}%")
+cols[-1].metric("Sharpe", f"{bh_sharpe:.2f}")
+cols[-1].metric("Max Drawdown", f"{bh_mdd:.2%}")
 
-# buy and hold metrics
-bh_shares = int(starting_cash/df_strategy['Open'].iloc[0])
-bh_values = pd.Series(bh_shares * df_strategy['Close'], index = df_strategy.index)
-bh_return = ((bh_values.iloc[-1]- starting_cash) /starting_cash)*100
-
-# display metrics
-
-col1,col2,col3,col4 = st.columns(4)
-col1.metric("Final Value", f"£{final_value:.2f}")
-col2.metric("Total Return", f"{total_return:.2f}%")
-col3.metric("Sharpe Ratio", f"{sharpe:.2f}")
-col4.metric("Max Drawdown", f"{max_drawdown:.2%}")
-
-st.metric("Buy & Hold Return", f"{bh_return:.2f}%")
+                      
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-
-# price chart with buy/sell signal
-
-buys = df_strategy[df_strategy['position'] == 1]
-sells = df_strategy[df_strategy['position'] == -1]
-
 fig = go.Figure()
-fig.add_trace(go.Scatter(x =df_strategy.index, y = df_strategy['Close'], name = 'Close Price', line = dict(color = 'blue', width = 1)))
-fig.add_trace(go.Scatter(x=buys.index, y=buys['Close'], mode='markers', name='Buy', marker=dict(symbol='triangle-up', size=10, color='green')))
-fig.add_trace(go.Scatter(x=sells.index, y=sells['Close'], mode='markers', name='Sell', marker=dict(symbol='triangle-down', size=10, color='red')))
-fig.update_layout(title=f"{ticker} Price with {strategy} Signals", xaxis_title="Date", yaxis_title="Price (USD)")
-if strategy == "MA Crossover":
-    fig.add_trace(go.Scatter(x=df_strategy.index, y=df_strategy['SMA_20'], name='SMA 20', line=dict(color='orange', width=1)))
-    fig.add_trace(go.Scatter(x=df_strategy.index, y=df_strategy['SMA_50'], name='SMA 50', line=dict(color='green', width=1)))
+for name, (df_s, pv) in strategy_data.items():
+    fig.add_trace(go.Scatter(x=df_s.index, y=df_s['Close'], name='Close Price', line=dict(color='blue', width=1)))
+    buys = df_s[df_s['position'] == 1]
+    sells = df_s[df_s['position'] == -1]
+    fig.add_trace(go.Scatter(x=buys.index, y=buys['Close'], mode='markers', name=f'{name} Buy', marker=dict(symbol='triangle-up', size=10, color='green')))
+    fig.add_trace(go.Scatter(x=sells.index, y=sells['Close'], mode='markers', name=f'{name} Sell', marker=dict(symbol='triangle-down', size=10, color='red')))
+
+fig.update_layout(title=f"{ticker} Price with Signals", xaxis_title="Date", yaxis_title="Price (USD)")
 st.plotly_chart(fig, use_container_width=True)
 
-
-
-# portfolio value vs buy and hold
+# portfolio value chart
 fig2 = go.Figure()
-fig2.add_trace(go.Scatter(x=df_strategy.index, y=portfolio_series, name='Strategy', line=dict(color='green')))
-fig2.add_trace(go.Scatter(x=df_strategy.index, y=bh_values, name='Buy & Hold', line=dict(color='orange')))
+colors = ['green', 'purple']
+for i, (name, (df_s, pv)) in enumerate(strategy_data.items()):
+    ps = pd.Series(pv, index=df_s.index)
+    fig2.add_trace(go.Scatter(x=df_s.index, y=ps, name=name, line=dict(color=colors[i])))
+
+fig2.add_trace(go.Scatter(x=first_df.index, y=bh_values, name='Buy & Hold', line=dict(color='orange')))
 fig2.update_layout(title="Portfolio Value vs Buy & Hold", xaxis_title="Date", yaxis_title="Value (£)")
 st.plotly_chart(fig2, use_container_width=True)
-
 
