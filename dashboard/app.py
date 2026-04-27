@@ -90,12 +90,21 @@ cols[-1].metric("Max Drawdown", f"{bh_mdd:.2%}")
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 fig = go.Figure()
-for name, (df_s, pv) in strategy_data.items():
-    fig.add_trace(go.Scatter(x=df_s.index, y=df_s['Close'], name='Close Price', line=dict(color='blue', width=1)))
+colors = {
+    'MA Crossover': {'buy': 'green', 'sell': 'red'},
+    'RSI': {'buy': 'cyan', 'sell': 'orange'}
+}
+for i, (name, (df_s, pv)) in enumerate(strategy_data.items()):
+    if i == 0:  # only add close price once
+        fig.add_trace(go.Scatter(
+            x=df_s.index, y=df_s['Close'], 
+            name='Close Price', 
+            line=dict(color='blue', width=1)
+        ))
     buys = df_s[df_s['position'] == 1]
     sells = df_s[df_s['position'] == -1]
-    fig.add_trace(go.Scatter(x=buys.index, y=buys['Close'], mode='markers', name=f'{name} Buy', marker=dict(symbol='triangle-up', size=10, color='green')))
-    fig.add_trace(go.Scatter(x=sells.index, y=sells['Close'], mode='markers', name=f'{name} Sell', marker=dict(symbol='triangle-down', size=10, color='red')))
+    fig.add_trace(go.Scatter(x=buys.index, y=buys['Close'], mode='markers', name=f'{name} Buy', marker=dict(symbol='triangle-up', size=10, color=colors[name]['buy'])))
+    fig.add_trace(go.Scatter(x=sells.index, y=sells['Close'], mode='markers', name=f'{name} Sell', marker=dict(symbol='triangle-down', size=10, color=colors[name]['sell'])))
 
 fig.update_layout(title=f"{ticker} Price with Signals", xaxis_title="Date", yaxis_title="Price (USD)")
 st.plotly_chart(fig, use_container_width=True)
