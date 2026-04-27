@@ -30,19 +30,32 @@ Generates a buy signal when RSI crosses below 30 (oversold condition ends) and a
 
 ## Results
 
-| Metric | MA Crossover (AAPL) | RSI (AAPL) | Buy & Hold (AAPL) |
+### AAPL (2020–2024)
+| Metric | MA Crossover | RSI | Buy & Hold |
 |---|---|---|---|
-| Total return | 78.88% | 27.27% | 163.19% |
+| Total return | 78.88% | 27.27% | 166.77% |
 | Sharpe ratio | 0.80 | 0.37 | 0.89 |
 | Max drawdown | -27.82% | -25.79% | -31.43% |
 
-| Metric | MA Crossover (MSFT) | RSI (MSFT) | Buy & Hold (MSFT) |
+### MSFT (2020–2024)
+| Metric | MA Crossover | RSI | Buy & Hold |
 |---|---|---|---|
-| Total return | 38.15% | 87.84% | 142.95% |
+| Total return | 38.15% | 87.84% | 143.98% |
 | Sharpe ratio | 0.50 | 0.73 | 0.85 |
 | Max drawdown | -39.33% | -28.48% | -37.15% |
 
-Key finding: RSI outperformed MA Crossover on MSFT on both Sharpe ratio and max drawdown, suggesting RSI is better suited to range-bound stocks while MA Crossover performs better on strongly trending assets.
+### TSLA (2020–2024)
+| Metric | MA Crossover | RSI | Buy & Hold |
+|---|---|---|---|
+| Total return | 119.58% | 76.90% | 777.13% |
+| Sharpe ratio | 0.66 | 0.54 | 1.14 |
+| Max drawdown | -50.03% | -62.66% | -73.63% |
+
+Key finding: RSI outperformed MA Crossover on MSFT on both 
+Sharpe ratio and max drawdown, suggesting RSI suits 
+range-bound stocks while MA Crossover suits trending assets.
+TSLA buy and hold had the best Sharpe (1.14) but required 
+surviving a -73% drawdown — psychologically very difficult.
 
 ---
 
